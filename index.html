@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Saver Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8f9fa;
+            color: #1a1a1a;
+            padding: 12px;
+            font-size: 13px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* --- BST HELPER WIDGET --- */
+        .bst-widget-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 12px;
+            background: rgba(248, 249, 250, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1100;
+        }
+
+        .bst-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .bst-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .bst-label {
+            font-size: 10px;
+            font-weight: 800;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+
+        .bst-time-main {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        .bst-offset-display {
+            text-align: center;
+        }
+
+        .bst-offset-time {
+            font-size: 28px;
+            font-weight: 800;
+            color: #2563eb;
+        }
+
+        .bst-fs-btn {
+            background: #f3f4f6;
+            color: #4b5563;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .bst-manual-row {
+            padding-top: 12px;
+            border-top: 1px solid #f3f4f6;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .bst-manual-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #6b7280;
+            white-space: nowrap;
+        }
+
+        .bst-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 13px;
+            background: #f9fafb;
+        }
+
+        .bst-copy-btn {
+            background: #2563eb;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 12px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .bst-copy-btn:hover {
+            background: #1d4ed8;
+        }
+
+        /* Full Screen Overlay */
+        .bst-full-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.98);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            display: none;
+        }
+
+        .bst-full-screen.active {
+            display: flex;
+        }
+
+        .fs-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2563eb;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .fs-clock {
+            font-size: clamp(32px, 8vw, 64px);
+            color: #6b7280;
+            margin-bottom: 40px;
+        }
+
+        .fs-offset {
+            font-size: clamp(64px, 15vw, 160px);
+            font-weight: 800;
+            color: #2563eb;
+            line-height: 1;
+        }
+
+        .close-fs {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: #f3f4f6;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        /* Login Screen */
+        .login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 1000;
+        }
+
+        .login-box {
+            margin-top: 160px;
+            /* Space for Persistent Header */
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-logo {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .login-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+        }
+
+        .login-subtitle {
+            color: #6b7280;
+            margin-bottom: 32px;
+            font-size: 14px;
+        }
+
+        .google-signin-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            padding: 14px 24px;
+            background: white;
+            color: #1a1a1a;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .google-signin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            border-color: #2563eb;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .auth-form input {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        .auth-btn {
+            background: #2563eb;
+            color: white;
+            padding: 12px;
+            font-size: 15px;
+            margin-top: 8px;
+        }
+
+        .auth-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .auth-toggle {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .auth-toggle span {
+            color: #2563eb;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Main App - Same as before */
+        .header {
+            margin-top: 160px;
+            /* Space for Persistent Header */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2563eb;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #2563eb;
+        }
+
+        .user-name {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .logout-btn {
+            padding: 6px 12px;
+            background: transparent;
+            color: #dc2626;
+            border: 1px solid #dc2626;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+            color: white;
+        }
+
+        .count {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .sync-status {
+            font-size: 11px;
+            color: #10b981;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .input-section {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            display: grid;
+            grid-template-columns: 1.5fr 200px 2fr auto auto;
+            gap: 8px;
+            align-items: center;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        input,
+        select,
+        .editor {
+            padding: 8px 10px;
+            background: #f9fafb;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            color: #1a1a1a;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+        }
+
+        input:focus,
+        select:focus,
+        .editor:focus {
+            outline: none;
+            border-color: #2563eb;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .editor {
+            min-height: 36px;
+            max-height: 36px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .editor:empty:before {
+            content: 'Message...';
+            color: #9ca3af;
+        }
+
+        .editor a {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-save {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-export {
+            background: #7c3aed;
+            color: white;
+        }
+
+        .btn-export:hover {
+            background: #6d28d9;
+        }
+
+        .btn-layout {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-layout.active {
+            background: #d97706;
+        }
+
+        .sortable-ghost {
+            opacity: 0.4;
+            transform: scale(0.95);
+        }
+
+        .sortable-drag {
+            cursor: grabbing !important;
+            transform: rotate(2deg);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .layout-active .message-card {
+            cursor: grab;
+            animation: jitter 0.3s infinite alternate;
+        }
+
+        @keyframes jitter {
+            from {
+                transform: rotate(-0.5deg);
+            }
+
+            to {
+                transform: rotate(0.5deg);
+            }
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding-left: 32px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+        .filter-category {
+            width: 160px;
+        }
+
+        .messages-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-height: calc(100vh - 180px);
+            overflow-y: auto;
+            padding: 2px;
+            align-content: flex-start;
+        }
+
+        .message-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 280px;
+            height: 180px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .message-card:hover {
+            border-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+        }
+
+        .message-card.copied {
+            background: #ecfdf5;
+            border-color: #10b981;
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+            gap: 8px;
+        }
+
+        .message-title {
+            font-weight: 800;
+            font-size: 15px;
+            color: #1a1a1a;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            line-clamp: 2;
+            line-height: 1.4;
+        }
+
+        .category-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .category-work {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .category-personal {
+            background: #fce7f3;
+            color: #be185d;
+        }
+
+        .category-templates {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .category-important {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .category-other {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+
+        .message-content {
+            color: #4b5563;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-bottom: 8px;
+            flex: 1;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 6;
+            -webkit-box-orient: vertical;
+            line-clamp: 6;
+            word-wrap: break-word;
+        }
+
+        .message-content a {
+            color: #2563eb;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+
+        .message-content strong {
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+
+        .message-content em {
+            color: #7c3aed;
+            font-style: italic;
+        }
+
+        .message-content span[style*="color"] {
+            font-weight: 500;
+        }
+
+        .message-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 8px;
+            border-top: 1px solid #e5e7eb;
+            margin-top: auto;
+        }
+
+        .copy-hint {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .delete-btn {
+            padding: 5px 10px;
+            background: transparent;
+            color: #dc2626;
+            border: 1px solid #dc2626;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+            width: 100%;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background: white;
+            border: 2px solid #10b981;
+            border-radius: 8px;
+            color: #1a1a1a;
+            font-weight: 600;
+            font-size: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            animation: slideUp 0.3s ease, slideDown 0.3s ease 2.7s forwards;
+            z-index: 1000;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+        .spinner {
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #2563eb;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f3f4f6;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+
+        @media (max-width: 768px) {
+            .message-card {
+                width: calc(50% - 5px);
+            }
+
+            .input-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .copied-overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2563eb;
+            color: white;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 24px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 3100;
+        }
+
+        .copied-overlay.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Main App -->
+    <div id="mainApp" class="container hidden">
+        <div class="header" style="margin-top: 20px;">
+            <div class="header-left">
+                <h1>💾 Message Saver Pro</h1>
+                <div class="sync-status">
+                    <span>☁️</span>
+                    <span id="syncStatus">Synced</span>
+                </div>
+            </div>
+            <div class="user-info">
+                <div class="count">
+                    <span id="messageCount">0</span> / 40
+                </div>
+                <img id="userAvatar" class="user-avatar" src="" alt="User">
+                <span id="userName" class="user-name"></span>
+                <button class="logout-btn" onclick="signOut()">Logout</button>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <input type="text" id="title" placeholder="Title">
+            <select id="category">
+                <option value="work">💼 Work</option>
+                <option value="personal">💭 Personal</option>
+                <option value="templates">📝 Templates</option>
+                <option value="important">⚡ Important</option>
+                <option value="other">📌 Other</option>
+            </select>
+            <div id="editor" class="editor" contenteditable="true"></div>
+            <button id="saveBtn" class="btn-save" onclick="saveMessage()">💾 Save</button>
+            <button class="btn-export" onclick="exportMessages()">📤 Export</button>
+        </div>
+
+        <div class="controls">
+            <button id="layoutBtn" class="btn-layout" onclick="toggleLayoutMode()">🔧 Edit Layout</button>
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchBox" placeholder="Search..." oninput="filterMessages()">
+            </div>
+            <div class="filter-category">
+                <select id="filterCategory" onchange="filterMessages()">
+                    <option value="all">All Categories</option>
+                    <option value="work">💼 Work</option>
+                    <option value="personal">💭 Personal</option>
+                    <option value="templates">📝 Templates</option>
+                    <option value="important">⚡ Important</option>
+                    <option value="other">📌 Other</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="messagesList" class="messages-grid">
+            <div class="loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="copiedOverlay" class="copied-overlay">COPIED!</div>
+
+    <!-- Firebase SDK v10 -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut as firebaseSignOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, query, orderBy, onSnapshot, serverTimestamp, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // ⚠️ IMPORTANT: Replace with YOUR Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDLTpu6dSAS-g__Y86Xe9l-MWRn_vggIvg",
+            authDomain: "massage-server-66b03.firebaseapp.com",
+            projectId: "massage-server-66b03",
+            storageBucket: "massage-server-66b03.firebasestorage.app",
+            messagingSenderId: "683120888575",
+            appId: "1:683120888575:web:4e2d3267fac1fad4c15aca",
+            measurementId: "G-7R9FQ15QTG"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let messagesCache = [];
+        let unsubscribe = null;
+        const MAX_MESSAGES = 40;
+        let isLoginMode = true;
+        let sortable = null;
+        let isLayoutMode = false;
+
+        // --- TIME CARD LOGIC ---
+        function updateClock() {
+            const now = new Date();
+            // Calculate BD time + 6 minutes
+            // BD is UTC+6. If system is already BD time (which user implies), we just add 6 mins.
+            // If system is NOT BD, we should ideally convert to BD then add 6 mins.
+            // Assuming user's system is correct or we use the specific timezone logic:
+
+            // Explicitly getting BD time first to be safe
+            const bstStr = new Date().toLocaleString("en-US", { timeZone: "Asia/Dhaka" });
+            const bstDate = new Date(bstStr);
+
+            // Add 6 minutes
+            bstDate.setMinutes(bstDate.getMinutes() + 6);
+
+            const offsetStr = formatTime(bstDate);
+
+            const timeEl = document.getElementById('card-live-time');
+            if (timeEl) {
+                timeEl.textContent = offsetStr;
+            }
+        }
+        setInterval(updateClock, 1000);
+
+        function formatTime(d) {
+            let h = d.getHours();
+            let m = d.getMinutes();
+            let ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            return `${h}:${m < 10 ? '0' + m : m} ${ampm}`;
+        }
+
+        window.copyTime = () => {
+            const timeEl = document.getElementById('card-live-time');
+            if (timeEl) copyText(timeEl.textContent);
+        };
+
+        async function copyText(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                const ov = document.getElementById('copiedOverlay');
+                ov.textContent = text; // Show the copied time
+                ov.classList.add('show');
+                setTimeout(() => ov.classList.remove('show'), 800);
+            } catch (e) { }
+        }
+
+        // Auth State Observer
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+
+                document.getElementById('userName').textContent = user.email.split('@')[0];
+                document.getElementById('userAvatar').src = `https://ui-avatars.com/api/?name=${user.email}&background=random`;
+
+                loadMessagesFromFirestore();
+            } else {
+                currentUser = null;
+                if (unsubscribe) unsubscribe();
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('mainApp').classList.add('hidden');
+            }
+        });
+
+        // Handle Login/Register
+        window.handleAuth = async function () {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (!email || !password) {
+                showToast('⚠️ Please enter email and password');
+                return;
+            }
+
+            try {
+                if (isLoginMode) {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    showToast('🔋 Logged in successfully');
+                } else {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                    showToast('✨ Account created successfully');
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                showToast(`❌ ${error.message}`);
+            }
+        };
+
+        window.toggleAuthMode = function () {
+            isLoginMode = !isLoginMode;
+            const title = document.getElementById('authTitle');
+            const subtitle = document.getElementById('authSubtitle');
+            const btn = document.getElementById('authBtn');
+            const toggleText = document.getElementById('toggleText');
+            const toggleLink = document.getElementById('toggleLink');
+
+            if (isLoginMode) {
+                title.textContent = 'Welcome Back';
+                subtitle.textContent = 'Sign in to sync your messages';
+                btn.textContent = 'Login';
+                toggleText.textContent = 'New here? ';
+                toggleLink.textContent = 'Create account';
+            } else {
+                title.textContent = 'Create Account';
+                subtitle.textContent = 'Join us to save your messages';
+                btn.textContent = 'Register';
+                toggleText.textContent = 'Already have an account? ';
+                toggleLink.textContent = 'Login';
+            }
+        };
+
+        // Sign Out
+        window.signOut = async function () {
+            try {
+                await firebaseSignOut(auth);
+                showToast('👋 Signed out');
+            } catch (error) {
+                console.error('Sign out error:', error);
+            }
+        };
+
+        function loadMessagesFromFirestore() {
+            if (!currentUser) return;
+
+            const messagesRef = collection(db, 'users', currentUser.uid, 'messages');
+            // Fetch all messages (removal of orderBy ensures none are hidden)
+            const q = query(messagesRef);
+
+            unsubscribe = onSnapshot(q, (snapshot) => {
+                messagesCache = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // Client-side sorting: Priority to 'order', fallback to 'timestamp'
+                messagesCache.sort((a, b) => {
+                    const orderA = a.order !== undefined ? a.order : Number.MAX_SAFE_INTEGER;
+                    const orderB = b.order !== undefined ? b.order : Number.MAX_SAFE_INTEGER;
+
+                    if (orderA !== orderB) return orderA - orderB;
+
+                    // Fallback to timestamp (newest first) for equal or missing orders
+                    const timeA = a.timestamp && a.timestamp.toMillis ? a.timestamp.toMillis() : 0;
+                    const timeB = b.timestamp && b.timestamp.toMillis ? b.timestamp.toMillis() : 0;
+                    return timeB - timeA;
+                });
+
+                displayMessages();
+                updateSyncStatus('Synced');
+            }, (error) => {
+                console.error('Firestore error:', error);
+                updateSyncStatus('Error');
+            });
+        }
+
+        // Save Message
+        window.saveMessage = async function () {
+            if (!currentUser) return;
+
+            const title = document.getElementById('title').value.trim();
+            const editorEl = document.getElementById('editor');
+            let content = editorEl.innerHTML.trim();
+
+            // Format processing (same as before)
+            content = content.replace(
+                /(?<!href="|>)(https?:\/\/[^\s<"]+)(?![^<]*<\/a>)/g,
+                '<a href="$1" target="_blank" style="color: #2563eb;">$1</a>'
+            );
+
+            content = content.replace(
+                /<span[^>]*style="[^"]*color:\s*rgb\(([^)]+)\)[^"]*"[^>]*>([^<]+)<\/span>/gi,
+                function (match, rgb, text) {
+                    return '<span style="color: rgb(' + rgb + ');">' + text + '</span>';
+                }
+            );
+
+            content = content.replace(
+                /<span[^>]*style="[^"]*color:\s*(#[0-9a-f]{6})[^"]*"[^>]*>([^<]+)<\/span>/gi,
+                function (match, color, text) {
+                    return '<span style="color: ' + color + ';">' + text + '</span>';
+                }
+            );
+
+            if (!content || content === '<br>') {
+                showToast('⚠️ Please enter message!');
+                return;
+            }
+
+            if (messagesCache.length >= MAX_MESSAGES) {
+                showToast(`❌ Maximum ${MAX_MESSAGES} messages!`);
+                return;
+            }
+
+            const messageData = {
+                title: title || 'Untitled',
+                content: content,
+                category: document.getElementById('category').value,
+                timestamp: serverTimestamp()
+            };
+
+            try {
+                updateSyncStatus('Saving...');
+                const messagesRef = collection(db, 'users', currentUser.uid, 'messages');
+
+                // Set order as last
+                messageData.order = messagesCache.length;
+                await addDoc(messagesRef, messageData);
+                showToast('✅ Saved!');
+                document.getElementById('title').value = '';
+                editorEl.innerHTML = '';
+
+                updateSyncStatus('Synced');
+            } catch (error) {
+                console.error('Save error:', error);
+                showToast('❌ Failed!');
+                updateSyncStatus('Error');
+            }
+        };
+
+        // Layout Mode
+        window.toggleLayoutMode = function () {
+            isLayoutMode = !isLayoutMode;
+            const btn = document.getElementById('layoutBtn');
+            const grid = document.getElementById('messagesList');
+
+            if (isLayoutMode) {
+                btn.textContent = '✅ Save Layout';
+                btn.classList.add('active');
+                grid.classList.add('layout-active');
+                initSortable();
+            } else {
+                btn.textContent = '🔧 Edit Layout';
+                btn.classList.remove('active');
+                grid.classList.remove('layout-active');
+                saveNewOrder();
+                if (sortable) sortable.destroy();
+            }
+        };
+
+        function initSortable() {
+            const grid = document.getElementById('messagesList');
+            sortable = Sortable.create(grid, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                dragClass: 'sortable-drag',
+                onEnd: () => {
+                    updateSyncStatus('Waiting to save order...');
+                }
+            });
+        }
+
+        async function saveNewOrder() {
+            if (!currentUser) return;
+            const grid = document.getElementById('messagesList');
+            const cards = grid.querySelectorAll('.message-card:not(.time-card)'); // Exclude time card
+            const batch = writeBatch(db);
+
+            cards.forEach((card, index) => {
+                const id = card.getAttribute('data-id');
+                if (id) {
+                    const ref = doc(db, 'users', currentUser.uid, 'messages', id);
+                    batch.update(ref, { order: index });
+                }
+            });
+
+            try {
+                updateSyncStatus('Saving layout...');
+                await batch.commit();
+                showToast('📋 Layout saved!');
+                updateSyncStatus('Synced');
+            } catch (error) {
+                console.error('Layout save error:', error);
+                showToast('❌ Layout save failed');
+            }
+        }
+
+        // Delete Message
+        window.deleteMessage = async function (messageId, event) {
+            event.stopPropagation();
+
+            if (!currentUser) return;
+            if (!confirm('Delete this message?')) return;
+
+            try {
+                updateSyncStatus('Deleting...');
+                const messageRef = doc(db, 'users', currentUser.uid, 'messages', messageId);
+                await deleteDoc(messageRef);
+
+                showToast('🗑️ Deleted');
+                updateSyncStatus('Synced');
+            } catch (error) {
+                console.error('Delete error:', error);
+                showToast('❌ Delete failed!');
+                updateSyncStatus('Error');
+            }
+        };
+
+        // Copy Message
+        window.copyMessage = function (messageId, event) {
+            if (event.target.classList.contains('delete-btn') || event.target.closest('.delete-btn')) {
+                return;
+            }
+
+            const message = messagesCache.find(m => m.id === messageId);
+            if (!message) return;
+
+            const tempDiv = document.createElement('div');
+            tempDiv.contentEditable = true;
+            tempDiv.innerHTML = message.content;
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            document.body.appendChild(tempDiv);
+
+            const range = document.createRange();
+            range.selectNodeContents(tempDiv);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            let success = false;
+            try {
+                success = document.execCommand('copy');
+            } catch (err) {
+                success = false;
+            }
+
+            selection.removeAllRanges();
+            document.body.removeChild(tempDiv);
+
+            const card = event.currentTarget;
+            card.classList.add('copied');
+            setTimeout(() => card.classList.remove('copied'), 500);
+
+            if (success) {
+                showToast('📋 Copied with formatting!');
+            } else {
+                showToast('❌ Copy failed');
+            }
+        };
+
+        // Display Messages
+        function displayMessages(filtered = null) {
+            const messages = filtered || messagesCache;
+            const container = document.getElementById('messagesList');
+            const messageCount = document.getElementById('messageCount');
+
+            messageCount.textContent = messages.length;
+
+            // TIME CARD HTML
+            const timeCardHtml = `
+                <div class="message-card time-card" onclick="copyTime()" style="border-color: #2563eb; background: #eff6ff;">
+                    <div class="message-header">
+                        <div class="message-title" style="color: #2563eb;">TIME RIGHT NOW</div>
+                        <span class="category-badge" style="background: #2563eb; color: white;">LIVE</span>
+                    </div>
+                    <div class="message-content" style="display: flex; align-items: center; justify-content: center;">
+                        <div id="card-live-time" style="font-size: 32px; font-weight: 800; color: #2563eb; line-height: 1;">--:-- --</div>
+                    </div>
+                    <div class="message-footer">
+                        <div class="copy-hint" style="color: #2563eb;">👆 Click to copy time</div>
+                    </div>
+                </div>
+            `;
+
+            if (messages.length === 0) {
+                container.innerHTML = timeCardHtml + '<div class="empty-state" style="width: 100%;">No messages yet</div>';
+                updateClock(); // Initialize clock immediately
+                return;
+            }
+
+            const messagesHtml = messages.map((msg) => `
+                <div class="message-card" data-id="${msg.id}" onclick="copyMessage('${msg.id}', event)">
+                    <div class="message-header">
+                        <div class="message-title">${escapeHtml(msg.title)}</div>
+                        <span class="category-badge category-${msg.category}">${getCategoryIcon(msg.category)}</span>
+                    </div>
+                    <div class="message-content">${msg.content}</div>
+                    <div class="message-footer">
+                        <div class="copy-hint">📋 Click to copy</div>
+                        <button class="delete-btn" onclick="deleteMessage('${msg.id}', event)">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = timeCardHtml + messagesHtml;
+            updateClock(); // Initialize clock immediately
+        }
+
+        // Filter Messages
+        window.filterMessages = function () {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const categoryFilter = document.getElementById('filterCategory').value;
+
+            const filtered = messagesCache.filter((msg) => {
+                const matchesSearch = msg.title.toLowerCase().includes(searchTerm) ||
+                    msg.content.toLowerCase().includes(searchTerm);
+                const matchesCategory = categoryFilter === 'all' || msg.category === categoryFilter;
+
+                return matchesSearch && matchesCategory;
+            });
+
+            displayMessages(filtered);
+        };
+
+        // Export Messages
+        window.exportMessages = function () {
+            if (messagesCache.length === 0) {
+                showToast('⚠️ No messages to export!');
+                return;
+            }
+
+            const dataStr = JSON.stringify(messagesCache, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+            const downloadLink = document.createElement('a');
+            downloadLink.href = URL.createObjectURL(dataBlob);
+            downloadLink.download = `messages-${new Date().toISOString().split('T')[0]}.json`;
+            downloadLink.click();
+
+            showToast('📤 Exported!');
+        };
+
+        // Helper Functions
+        function getCategoryIcon(category) {
+            const icons = {
+                work: '💼',
+                personal: '💭',
+                templates: '📝',
+                important: '⚡',
+                other: '📌'
+            };
+            return icons[category] || '📌';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showToast(message) {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function updateSyncStatus(status) {
+            const statusEl = document.getElementById('syncStatus');
+            statusEl.textContent = status;
+
+            if (status === 'Synced') {
+                statusEl.parentElement.style.color = '#10b981';
+            } else if (status === 'Error') {
+                statusEl.parentElement.style.color = '#dc2626';
+            } else {
+                statusEl.parentElement.style.color = '#f59e0b';
+            }
+        }
+
+        window.openBstFs = openBstFs; window.closeBstFs = closeBstFs; window.copyBstTime = copyBstTime;
+        window.copyBstTimeFromMini = copyBstTimeFromMini; window.calcManualOffset = calcManualOffset; window.copyManualTime = copyManualTime;
+
+        // Initialize Sortable if in layout mode
+        window.addEventListener('load', () => {
+            if (isLayoutMode) initSortable();
+        });
+    </script>
+
+</body>
+
+</html>
